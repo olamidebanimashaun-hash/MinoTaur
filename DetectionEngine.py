@@ -14,14 +14,32 @@ class DetectionEngine:
         return {
             'syn_flood': {
                 'condition': lambda features: (
-                    features['tcp_flags'] == 2 or  # SYN flag
+                    features['tcp_flags'] == 2 and  # SYN flag
                     features['packet_rate'] > 100
+                )
+            },
+            'ddos': {
+                'condition': lambda features: (
+                    features['packet_rate'] > 100 and
+                    features['byte_rate'] > 10
+                )
+            },
+            'spoofing': {
+                'condition': lambda features: (
+                    features['src_ip'] != features['dst_ip'] and
+                    features['packet_rate'] > 50
                 )
             },
             'port_scan': {
                 'condition': lambda features: (
-                    features['packet_size'] < 100 and
-                    features['packet_rate'] > 50
+                    features['unique_ports'] > 2
+                )
+            },
+            'arp_spoofing': {
+                'condition': lambda features: (
+                    features.get('orginalmac') is not None and
+                    features.get('responsemac') is not None and
+                    features['orginalmac'] != features['responsemac']
                 )
             }
         }
