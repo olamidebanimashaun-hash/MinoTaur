@@ -5,31 +5,14 @@ from scapy.all import RandShort
 
 from IDS import IDS
 import time
-# def get_mac(ip):
-#     arp_request = ARP(pdst = ip)
-#     broadcast = Ether(dst ="ff:ff:ff:ff:ff:ff")
-#     arp_request_broadcast = broadcast / arp_request
-#     answered_list = srp(arp_request_broadcast, timeout = 5, verbose = False)[0]
-#     return answered_list[0][1].hwsrc
-
-# def spoof(target_ip, spoof_ip):
-#     packet = ARP(op = 2, pdst = target_ip, hwdst = get_mac(target_ip),psrc = spoof_ip)
-#     return packet
-
-# def arp_spoof_once(victim_ip, gateway_ip):
-#     victim_mac = get_mac(victim_ip)
-#     spoof_pkt = ARP(op=2, pdst=victim_ip, hwdst=victim_mac, psrc=gateway_ip)
-#     send(spoof_pkt, verbose=False)
-#     return spoof_pkt
-
 def test_ids():
     # Create test packets to simulate various scenarios
     base_time = time.time()
     
     # Normal traffic
     normal_packets = [
-        IP(src="192.168.1.1", dst="192.168.1.2") / TCP(sport=1234, dport=80, flags="A"),
-        IP(src="192.168.1.3", dst="192.168.1.4") / TCP(sport=1235, dport=443, flags="P"),
+        IP(src="192.168.1.1", dst="192.168.1.2") / TCP(sport=1234, dport=80, flags="S"),
+        IP(src="192.168.1.3", dst="192.168.1.4") / TCP(sport=1235, dport=443, flags="A"),
     ]
     
     # SYN flood simulation - many SYNs from same source in short time
@@ -41,7 +24,7 @@ def test_ids():
 
     fyn_packets = []
     for j in range(100):  # Increase for flood simulation
-        p = IP(src=f"10.0.0.{j % 255}", dst="192.168.1.2") / TCP(sport=(random.randrange(1,6800)), dport=80, flags="S")
+        p = IP(src=f"10.0.0.{j % 255}", dst="192.168.1.2") / TCP(sport=(random.randrange(1,6700)), dport=80, flags="S")
         p.time = base_time + j * 0.001
         fyn_packets.append(p)
 
@@ -58,32 +41,11 @@ def test_ids():
         IP(src="192.168.1.100", dst="192.168.1.2") / TCP(sport=4321, dport=25, flags="S"),
     ]
     vanilla_packets = []
-    for j in range(65,536):
+    for j in range(100):
         p = IP(src="10.0.0.1", dst="192.168.1.2") / TCP(sport=5678, dport=j, flags="S")
         vanilla_packets.append(p)
 
     ids = IDS()
-
-    # # Simulate packet processing and threat detection
-    # print("Starting IDS Test...")
-    # for i, packet in enumerate(test_packets, 1):
-    #     print(f"\nProcessing packet {i}: {packet.summary()}")
-
-    #     # Analyze the packet
-    #     features = ids.traffic_analyzer.analyze_packet(packet)
-
-    #     if features:
-    #         # Detect threats based on features
-    #         threats = ids.detection_engine.detect_threats(features)
-
-    #         if threats:
-    #             print(f"Detected threats: {threats}")
-    #         else:
-    #             print("No threats detected.")
-    #     else:
-    #         print("Packet does not contain IP/TCP layers or is ignored.")
-
-    # print("\nIDS Test Completed.")
     test_packets = normal_packets + syn_packets  + port_scan_packets
 
     attackDitctionary = {

@@ -16,7 +16,7 @@ Can occur in three different ways:
 
 - DDoS -  an attack is created using abotnet the likelihood of tracking said attack back to its source is low. The attacker may also sppof their ip address.
 
-- Spoofed Attack - A user spoof their ip address on erach SYN packet they send in order to inhibit the mitigation efforts and make their idneity more didficult to disocver
+- Spoofed Attack - A user spoof their ip address on erach SYN packet they send in order to inhibit the mitigation efforts and make their identity more difficult to discover
 
 
 

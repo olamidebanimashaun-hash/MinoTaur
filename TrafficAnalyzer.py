@@ -54,6 +54,8 @@ class TrafficAnalyzer:
     def extract_for_layer2(self, packet):
         return {
             'src_ip': 0,
+            'src_port':0,
+            'dst_port':0,
             'dst_ip': 0,
             'packet_size':0,
             'flow_duration': 0,
@@ -76,11 +78,15 @@ class TrafficAnalyzer:
         return {
             'src_ip': packet[IP].src,
             'dst_ip': packet[IP].dst,
+            'src_port': packet[TCP].sport,
+            'dst_port': packet[TCP].dport,
             'packet_size': len(packet),
             'flow_duration': flow_duration,
             'packet_rate': stats['packet_count'] / flow_duration,
             'byte_rate': stats['byte_count'] / flow_duration,
             'tcp_flags': packet[TCP].flags,
             'window_size': packet[TCP].window,
-            'unique_ports': len(self.src_ports[ip_src])
+            'unique_ports': len(self.src_ports[ip_src]),
+            'orginalmac': None,
+            'responsemac': None
         }
