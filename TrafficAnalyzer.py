@@ -1,4 +1,6 @@
-from scapy.all import sniff, IP, TCP
+from scapy.all import sniff, IP, TCP, ARP
+from scapy.all import IP, TCP, ARP, Ether, srp
+
 from collections import defaultdict
 class TrafficAnalyzer:
     def __init__(self):
@@ -9,6 +11,18 @@ class TrafficAnalyzer:
             'start_time': None,
             'last_time': None
         })
+        self.src_ports = defaultdict(set)
+
+    def get_mac(ip):
+        arp_request = ARP(pdst=ip)
+        broadcast = Ether(dst="ff:ff:ff:ff:ff:ff")
+        arp_request_broadcast = broadcast / arp_request
+        answered_list = srp(arp_request_broadcast, timeout=1, verbose=False)[0]
+
+        if answered_list:
+            return answered_list[0][1].hwsrc
+        else:
+            return None
 
     def analyze_packet(self, packet):
         if IP in packet and TCP in packet:
@@ -16,6 +30,8 @@ class TrafficAnalyzer:
             ip_dst = packet[IP].dst
             port_src = packet[TCP].sport
             port_dst = packet[TCP].dport
+                    
+            self.src_ports[ip_src].add(port_dst)
 
             flow_key = (ip_src, ip_dst, port_src, port_dst)
 
@@ -33,19 +49,46 @@ class TrafficAnalyzer:
             # print('Last time:', stats['last_time'])
             # print('Start time:', stats['start_time'])
             return self.extract_features(packet, stats)
+        elif packet.haslayer(ARP) and packet[ARP].op == 2:
+            return self.extract_for_layer2(packet)
+        
 
+    def extract_for_layer2(self, packet):
+        return {
+            'src_ip': 0,
+            'src_port':0,
+            'dst_port':0,
+            'dst_ip': 0,
+            'packet_size':0,
+            'flow_duration': 0,
+            'packet_rate': 0,
+            'byte_rate':0,
+            'tcp_flags': 0,
+            'window_size': 0,
+            'unique_ports': 0,
+            'orginalmac': packet[ARP].hwsrc,
+            'responsemac': packet[ARP].psrc
+    }
+    
     def extract_features(self, packet, stats):
+        ip_src = packet[IP].src
         flow_duration = stats['last_time'] - stats['start_time']
         
         # Handle zero or negative flow duration to avoid division by zero
         if flow_duration <= 0:
             flow_duration = 1  # Use a small non-zero value (1 microsecond)
-        
         return {
+            'src_ip': packet[IP].src,
+            'dst_ip': packet[IP].dst,
+            'src_port': packet[TCP].sport,
+            'dst_port': packet[TCP].dport,
             'packet_size': len(packet),
             'flow_duration': flow_duration,
             'packet_rate': stats['packet_count'] / flow_duration,
             'byte_rate': stats['byte_count'] / flow_duration,
             'tcp_flags': packet[TCP].flags,
-            'window_size': packet[TCP].window
+            'window_size': packet[TCP].window,
+            'unique_ports': len(self.src_ports[ip_src]),
+            'orginalmac': None,
+            'responsemac': None
         }
