@@ -28,12 +28,6 @@ def test_ids():
         p.time = base_time + j * 0.001
         fyn_packets.append(p)
 
-    spoof_syn = [
-        Ether(dst="00:11:22:33:44:55") / ARP(op=2, pdst="192.168.1.2", hwdst="00:11:22:33:44:55", psrc="192.168.1.1"),
-        Ether(dst="00:11:22:33:44:55") / ARP(op=2, pdst="192.168.1.2", hwdst="00:11:22:33:44:55", psrc="192.168.1.1"),
-        Ether(dst="00:11:22:33:44:55") / ARP(op=2, pdst="192.168.1.2", hwdst="00:11:22:33:44:55", psrc="192.168.1.1")
-    ]
-
     # Port scan simulation
     port_scan_packets = [
         IP(src="192.168.1.100", dst="192.168.1.2") / TCP(sport=4321, dport=22, flags="S"),
@@ -54,8 +48,7 @@ def test_ids():
         'fsyn':   fyn_packets  ,
         'pscan': port_scan_packets,
         'all':      test_packets,
-        'vanilla': vanilla_packets,
-        'spoof': spoof_syn
+        'vanilla': vanilla_packets
     }
     print('Enter the type of attack to test (nor,dsyn,pscan,all):')
     for attackType in attackDitctionary.keys():

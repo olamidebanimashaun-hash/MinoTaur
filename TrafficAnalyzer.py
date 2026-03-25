@@ -13,12 +13,16 @@ class TrafficAnalyzer:
         })
         self.src_ports = defaultdict(set)
 
-    def mac(self, ipadd):
-        arp_request = ARP(pdst=ipadd)
-        br = Ether(dst="ff:ff:ff:ff:ff:ff")
-        arp_req_br = br / arp_request
-        list_1 = srp(arp_req_br, timeout=5, verbose=False)[0]
-        return list_1[0][1].hwsrc
+    def get_mac(ip):
+        arp_request = ARP(pdst=ip)
+        broadcast = Ether(dst="ff:ff:ff:ff:ff:ff")
+        arp_request_broadcast = broadcast / arp_request
+        answered_list = srp(arp_request_broadcast, timeout=1, verbose=False)[0]
+
+        if answered_list:
+            return answered_list[0][1].hwsrc
+        else:
+            return None
 
     def analyze_packet(self, packet):
         if IP in packet and TCP in packet:
@@ -45,9 +49,7 @@ class TrafficAnalyzer:
             # print('Last time:', stats['last_time'])
             # print('Start time:', stats['start_time'])
             return self.extract_features(packet, stats)
-
         elif packet.haslayer(ARP) and packet[ARP].op == 2:
-            print("ARP Spoofing detected!")
             return self.extract_for_layer2(packet)
         
 

@@ -32,3 +32,9 @@ A port scan is a common technique hackers use to discover open doors or weak poi
 - XMAS - Sends a set of flags which, when responded to, can disclose insights about the firewall and the state of the ports.
 
 - FIN - Scans see an attacker send a FIN flag, often used to end an established session to a specific port. The system's response to it can help the attacker understand the level of activity and provide insight into the organization's firewall usage.
+
+## Fragmentation
+
+## Malware
+
+## Exploits

@@ -25,7 +25,7 @@ class TestSignatureRules(unittest.TestCase):
         threats = self.detection_engine.detect_threats(features)
         
         self.assertTrue(any(t['type'] == 'signature' and t['rule'] == 'syn_flood' for t in threats),"SYN flood should be detected")
-    
+
     def test_port_scan_detection(self):
         features = {
             'tcp_flags': 0x02,

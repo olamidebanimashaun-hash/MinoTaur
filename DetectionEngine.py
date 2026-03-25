@@ -1,6 +1,6 @@
 from sklearn.ensemble import IsolationForest
 import numpy as np
-
+np.set_printoptions(legacy='1.25')
 class DetectionEngine:
     def __init__(self):
         self.anomaly_detector = IsolationForest(
@@ -76,16 +76,18 @@ class DetectionEngine:
         feature_vector = np.array([[
             features['packet_size'],
             features['packet_rate'],
-            features['byte_rate']
+            features['byte_rate'],
+            features['flow_duration']
         ]])
 
         self.anomaly_detector.fit(feature_vector)
         anomaly_score = self.anomaly_detector.score_samples(feature_vector)[0]
-        if anomaly_score < -0.5:  # Threshold for anomaly detection tweaked for better sensitivity and try different values
+        threshold = -0.5
+        if anomaly_score < threshold:  # Threshold for anomaly detection tweaked for better sensitivity and try different values
             threats.append({
                 'type': 'anomaly',
-                'score': anomaly_score,
-                'confidence': min(1.0, abs(anomaly_score))
+                'score': threshold,
+                'confidence': abs(anomaly_score) / 10
             })
 
         return threats
