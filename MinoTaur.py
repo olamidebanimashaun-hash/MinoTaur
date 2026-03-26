@@ -4,9 +4,9 @@ from DetectionEngine import DetectionEngine
 from AlertSystem import AlertSystem
 from scapy.all import IP, TCP
 import queue
-
+iface = "\\Device\\NPF_Loopback"
 class MinoTaur:
-    def __init__(self, interface="eth0"):
+    def __init__(self, interface=iface):
         self.packet_capture = PacketCapture()
         self.traffic_analyzer = TrafficAnalyzer()
         self.detection_engine = DetectionEngine()

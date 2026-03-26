@@ -3,6 +3,7 @@ import threading
 import queue
 
 class PacketCapture:
+    iface = "\\Device\\NPF_Loopback"
     def __init__(self):
         self.packet_queue = queue.Queue()
         self.stop_capture = threading.Event()
@@ -11,7 +12,7 @@ class PacketCapture:
         if IP in packet and (TCP in packet or UDP in packet):
             self.packet_queue.put(packet)
 
-    def start_capture(self, interface="eth0"):
+    def start_capture(self, interface=iface):
         def capture_thread():
             sniff(iface=interface,
                   prn=self.packet_callback,
