@@ -1,7 +1,7 @@
 import unittest
 from unittest.mock import Mock
 import time
-from IDS import IDS
+from MinoTaur import IDS
 
 class TestSignatureRules(unittest.TestCase):
     def setUp(self):

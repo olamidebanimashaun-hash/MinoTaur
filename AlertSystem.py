@@ -30,5 +30,3 @@ class AlertSystem:
             self.logger.critical(
                 f"High confidence threat detected: {json.dumps(alert)}"
             )
-            # Implement additional notification methods here
-            # (e.g., email, Slack, SIEM integration)

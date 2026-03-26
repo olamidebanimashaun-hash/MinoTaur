@@ -5,7 +5,7 @@ from AlertSystem import AlertSystem
 from scapy.all import IP, TCP
 import queue
 
-class IDS:
+class MinoTaur:
     def __init__(self, interface="eth0"):
         self.packet_capture = PacketCapture()
         self.traffic_analyzer = TrafficAnalyzer()
@@ -43,5 +43,5 @@ class IDS:
                 break
 
 if __name__ == "__main__":
-    ids = IDS()
+    ids = MinoTaur()
     ids.start()

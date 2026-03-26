@@ -16,12 +16,18 @@ class DetectionEngine:
             'syn_flood': {
                 'description': 'Multiple SYN packets from same source to same dest',
                 'condition': lambda f: (
-                    (f['tcp_flags'] & 0x02) != 0 and  # Check SYN flag specifically
+                    (f['tcp_flags'] == 2) and  # Check SYN flag specifically
                     f['packet_rate'] > 100 and        # Tuned threshold
                     f['unique_ports'] <= 3            # Targeting few ports
                 ),
                 'severity': 'high',
                 'confidence_base': 0.8
+            },
+            'udp_flood': {
+
+            },
+            'Slowloris':{
+
             },
             'ddos': {
                 'description': 'High volume traffic from multiple sources',
