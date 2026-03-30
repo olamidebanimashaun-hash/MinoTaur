@@ -5,7 +5,8 @@ Testing
 AI detection
 
 Update Anomaly Detection
-    Peform EDA, preprocessing and train modelk
+    Improve Eda, model and preprocessing
+    Adjust threshold and tests
 
 Update Signatures
     slowris

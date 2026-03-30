@@ -1,14 +1,10 @@
 from sklearn.ensemble import IsolationForest
 import numpy as np
+import joblib
 np.set_printoptions(legacy='1.25')
 class DetectionEngine:
     def __init__(self):
-        self.anomaly_detector = IsolationForest(
-            contamination=0.1,
-            random_state=42
-        )
         self.signature_rules = self.load_signature_rules()
-        self.training_data = []
 
     #add more signauture rules as learn about attack patterns, keep them basic
     def load_signature_rules(self):
@@ -23,11 +19,15 @@ class DetectionEngine:
                 'severity': 'high',
                 'confidence_base': 0.8
             },
-            'udp_flood': {
-
-            },
-            'Slowloris':{
-
+            'slowloris':{
+                'description': 'A large number of small packets over a long duration',
+                'condition': lambda f: (
+                    f['packet_rate'] > 50 and
+                    f['byte_rate'] > 500 and     
+                    f['flow_duration'] > 10          
+                ),
+                'severity': 'critical',
+                'confidence_base': 0.95
             },
             'ddos': {
                 'description': 'High volume traffic from multiple sources',
@@ -42,7 +42,7 @@ class DetectionEngine:
             'port_scan': {
                 'description': 'Sequential scans to multiple high-numbered ports',
                 'condition': lambda f: (
-                    f['unique_ports'] > 5 and       # Increased threshold
+                    f['unique_ports'] > 10 and       # Increased threshold
                     f['packet_rate'] < 10 and        # Slow scanning
                     f['flow_duration'] > 5           # Over time period
                 ),
@@ -80,16 +80,16 @@ class DetectionEngine:
 
         # Anomaly-based detection
         feature_vector = np.array([[
+            features['src_port'],
             features['packet_size'],
-            features['packet_rate'],
-            features['byte_rate'],
             features['flow_duration']
         ]])
 
-        self.anomaly_detector.fit(feature_vector)
-        anomaly_score = self.anomaly_detector.score_samples(feature_vector)[0]
-        threshold = -0.5
-        if anomaly_score < threshold:  # Threshold for anomaly detection tweaked for better sensitivity and try different values
+        loaded_model = joblib.load("Data/xgb_model.pkl")
+        anomaly_score = loaded_model.predict_proba(feature_vector)[0, 1]  # probability for positive class
+        threshold = 0.2
+        #print(f"Anomaly score: {anomaly_score:.4f}")
+        if anomaly_score > threshold:  # Threshold for anomaly detection tweaked for better sensitivity and try different values
             threats.append({
                 'type': 'anomaly',
                 'score': threshold,

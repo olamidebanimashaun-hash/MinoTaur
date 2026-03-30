@@ -53,6 +53,8 @@ class TrafficAnalyzer:
             # Update flow statistics
             stats = self.flow_stats[flow_key]
             stats['tcp_flags'] = tcp_flags if TCP in packet else None
+            stats['port_src'] = port_src
+            stats['port_dst'] = port_dst
             stats['packet_count'] += 1
             stats['byte_count'] += len(packet)
             current_time = packet.time
@@ -95,16 +97,16 @@ class TrafficAnalyzer:
         return {
             'src_ip': packet[IP].src,
             'dst_ip': packet[IP].dst,
-            'src_port': packet[TCP].sport,
-            'dst_port': packet[TCP].dport,
+            'src_port': stats['port_src'] ,
+            'dst_port': stats['port_dst'] ,
             'protocol': self.get_protocol_name(packet[IP].proto),
             'packet_size': len(packet),
             'flow_duration': flow_duration,
             'packet_count': stats['packet_count'],
             'packet_rate': stats['packet_count'] / flow_duration,
             'byte_rate': stats['byte_count'] / flow_duration,
-            'tcp_flags': packet[TCP].flags,
-            'window_size': packet[TCP].window,
+            'tcp_flags': stats['tcp_flags'],
+            'window_size': packet[TCP].window if TCP in packet else 0,
             'unique_ports': len(self.src_ports[ip_src]),
             'orginalmac': None,
             'responsemac': None

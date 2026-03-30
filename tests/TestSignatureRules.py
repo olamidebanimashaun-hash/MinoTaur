@@ -1,11 +1,14 @@
+import sys
+# setting path
+sys.path.append('../')
 import unittest
 from unittest.mock import Mock
 import time
-from MinoTaur import IDS
+from MinoTaur import MinoTaur
 
 class TestSignatureRules(unittest.TestCase):
     def setUp(self):
-        self.ids = IDS()
+        self.ids = MinoTaur()
         self.detection_engine = self.ids.detection_engine
     
     def test_syn_flood_detection(self):
@@ -25,6 +28,25 @@ class TestSignatureRules(unittest.TestCase):
         threats = self.detection_engine.detect_threats(features)
         
         self.assertTrue(any(t['type'] == 'signature' and t['rule'] == 'syn_flood' for t in threats),"SYN flood should be detected")
+
+    def test_slowloris_detection(self):
+        features = {
+            'tcp_flags': 0x02,           
+            'packet_rate': 150,          
+            'unique_ports': 4,
+            'flow_duration': 100.0,
+            'packet_size': 64,
+            'byte_rate': 10000,
+            'window_size': 65535,
+            'src_ip': '10.0.0.1',
+            'dst_ip': '192.168.1.2',
+            'orginalmac': None,
+            'responsemac': None
+        }
+        threats = self.detection_engine.detect_threats(features)
+        print(threats)
+        
+        self.assertTrue(any(t['type'] == 'signature' and t['rule'] == 'slowloris' for t in threats),"Slowloris should be detected")
 
     def test_port_scan_detection(self):
         features = {

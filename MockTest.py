@@ -62,7 +62,7 @@ def test_ids():
 
             # Analyze the packet
             features = ids.traffic_analyzer.analyze_packet(packet)
-            print(f"Extracted features: {features}")
+            #print(f"Extracted features: {features}")
             if features:
                 # Detect threats based on features
                 threats = ids.detection_engine.detect_threats(features)
