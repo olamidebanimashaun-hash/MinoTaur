@@ -25,7 +25,7 @@ class TestSignatureRules(unittest.TestCase):
             'orginalmac': None,
             'responsemac': None
         }
-        threats = self.detection_engine.detect_threats(features)
+        threats = self.detection_engine.detect_threats(features, path="../Data/xgb_model.pkl")
         
         self.assertTrue(any(t['type'] == 'signature' and t['rule'] == 'syn_flood' for t in threats),"SYN flood should be detected")
 
@@ -43,7 +43,7 @@ class TestSignatureRules(unittest.TestCase):
             'orginalmac': None,
             'responsemac': None
         }
-        threats = self.detection_engine.detect_threats(features)
+        threats = self.detection_engine.detect_threats(features, path="../Data/xgb_model.pkl")
         print(threats)
         
         self.assertTrue(any(t['type'] == 'signature' and t['rule'] == 'slowloris' for t in threats),"Slowloris should be detected")
@@ -62,7 +62,7 @@ class TestSignatureRules(unittest.TestCase):
             'orginalmac': None,
             'responsemac': None
         }
-        threats = self.detection_engine.detect_threats(features)
+        threats = self.detection_engine.detect_threats(features, path="../Data/xgb_model.pkl")
 
         self.assertTrue(any(t['rule'] == 'port_scan' for t in threats), "Port scan should be detected")
     
@@ -81,7 +81,7 @@ class TestSignatureRules(unittest.TestCase):
             'responsemac': None
         }
         
-        threats = self.detection_engine.detect_threats(features)
+        threats = self.detection_engine.detect_threats(features, path="../Data/xgb_model.pkl")
         
         signature_threats = [t for t in threats if t['type'] == 'signature']
         self.assertEqual(len(signature_threats), 0, "Normal traffic should not trigger signatures")

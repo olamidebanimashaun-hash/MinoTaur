@@ -27,13 +27,7 @@ class MinoTaur:
                     threats = self.detection_engine.detect_threats(features)
 
                     for threat in threats:
-                        packet_info = {
-                            'source_ip': packet[IP].src,
-                            'destination_ip': packet[IP].dst,
-                            'source_port': packet[TCP].sport,
-                            'destination_port': packet[TCP].dport
-                        }
-                        self.alert_system.generate_alert(threat, packet_info)
+                        self.alert_system.generate_alert(threat, features)
 
             except queue.Empty:
                 continue

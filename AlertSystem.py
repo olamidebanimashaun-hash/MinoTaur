@@ -18,7 +18,7 @@ class AlertSystem:
         alert = {
             'timestamp': datetime.now().isoformat(),
             'threat_type': threat['type'],
-            'confidence': threat.get('confidence', 0.0),
+            'confidence': str(threat.get('confidence', 0.0)),
             'details': threat['rule'] if threat['type'] == 'signature' else 'anomaly',
             'source_ip': packet_info.get('source_ip'),
             'destination_ip': packet_info.get('destination_ip')

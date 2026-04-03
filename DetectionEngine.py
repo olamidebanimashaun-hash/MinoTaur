@@ -1,3 +1,6 @@
+from pathlib import Path
+from pyexpat import features
+
 from sklearn.ensemble import IsolationForest
 import numpy as np
 import joblib
@@ -64,10 +67,10 @@ class DetectionEngine:
     def train_anomaly_detector(self, normal_traffic_data):
         self.anomaly_detector.fit(normal_traffic_data)
 
-    def detect_threats(self, features):
+    def detect_threats(self, features, path="Data/xgb_model.pkl"):
         threats = []
-        features.setdefault('dst_port', '')
-
+        features.setdefault('dst_port', 0)
+        features.setdefault('src_port', 0)
 
         # Signature-based detection
         for rule_name, rule in self.signature_rules.items():
@@ -84,10 +87,11 @@ class DetectionEngine:
             features['packet_size'],
             features['flow_duration']
         ]])
+        loaded_model = joblib.load(path)
 
-        loaded_model = joblib.load("Data/xgb_model.pkl")
         anomaly_score = loaded_model.predict_proba(feature_vector)[0, 1]  # probability for positive class
-        threshold = 0.2
+        threshold = 0.1
+        print(anomaly_score)
         #print(f"Anomaly score: {anomaly_score:.4f}")
         if anomaly_score > threshold:  # Threshold for anomaly detection tweaked for better sensitivity and try different values
             threats.append({
