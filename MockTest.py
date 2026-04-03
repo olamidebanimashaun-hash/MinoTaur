@@ -3,7 +3,7 @@ from scapy.all import IP, TCP, ARP, Ether, srp
 from scapy.sendrecv import send
 from scapy.all import RandShort
 
-from IDS import IDS
+from MinoTaur import MinoTaur
 import time
 def test_ids():
     # Create test packets to simulate various scenarios
@@ -39,7 +39,7 @@ def test_ids():
         p = IP(src="10.0.0.1", dst="192.168.1.2") / TCP(sport=5678, dport=j, flags="S")
         vanilla_packets.append(p)
 
-    ids = IDS()
+    ids = MinoTaur()
     test_packets = normal_packets + syn_packets  + port_scan_packets
 
     attackDitctionary = {
@@ -62,7 +62,7 @@ def test_ids():
 
             # Analyze the packet
             features = ids.traffic_analyzer.analyze_packet(packet)
-
+            #print(f"Extracted features: {features}")
             if features:
                 # Detect threats based on features
                 threats = ids.detection_engine.detect_threats(features)

@@ -4,9 +4,9 @@ from DetectionEngine import DetectionEngine
 from AlertSystem import AlertSystem
 from scapy.all import IP, TCP
 import queue
-
-class IDS:
-    def __init__(self, interface="eth0"):
+iface = "\\Device\\NPF_Loopback"
+class MinoTaur:
+    def __init__(self, interface=iface):
         self.packet_capture = PacketCapture()
         self.traffic_analyzer = TrafficAnalyzer()
         self.detection_engine = DetectionEngine()
@@ -27,13 +27,7 @@ class IDS:
                     threats = self.detection_engine.detect_threats(features)
 
                     for threat in threats:
-                        packet_info = {
-                            'source_ip': packet[IP].src,
-                            'destination_ip': packet[IP].dst,
-                            'source_port': packet[TCP].sport,
-                            'destination_port': packet[TCP].dport
-                        }
-                        self.alert_system.generate_alert(threat, packet_info)
+                        self.alert_system.generate_alert(threat, features)
 
             except queue.Empty:
                 continue
@@ -43,5 +37,5 @@ class IDS:
                 break
 
 if __name__ == "__main__":
-    ids = IDS()
+    ids = MinoTaur()
     ids.start()

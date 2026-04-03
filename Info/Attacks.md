@@ -18,6 +18,11 @@ Can occur in three different ways:
 
 - Spoofed Attack - A user spoof their ip address on erach SYN packet they send in order to inhibit the mitigation efforts and make their identity more difficult to discover
 
+## Slowloris Attack
+1. Attacker first opens multiple connections to the target server be dednign multple partial HTTP headers
+2. The taret opens a thread for each incoming request
+3. To prevent the target from timing out the connections, the attacvker sends mor epartial request headfer to the tagert in oder to keep the request alive
+4. The target server is never able to release any of the open partial connections while waiting for the terminationa of the request, once all avaialbe thread are is use ther server will be unable to repsons to additonal requests.
 
 
 

@@ -1,6 +1,6 @@
+from scapy import packet
 from scapy.all import sniff, IP, TCP, ARP
-from scapy.all import IP, TCP, ARP, Ether, srp
-
+from scapy.all import IP, TCP, ARP, UDP, Ether, srp
 from collections import defaultdict
 class TrafficAnalyzer:
     def __init__(self):
@@ -11,8 +11,17 @@ class TrafficAnalyzer:
             'start_time': None,
             'last_time': None
         })
+        self.protocol_map = {
+            1: 'ICMP',
+            6: 'TCP',
+            17: 'UDP'
+        }
         self.src_ports = defaultdict(set)
 
+    def get_protocol_name(self, protocol_num: int) -> str:
+        """Convert protocol number to name"""
+        return self.protocol_map.get(protocol_num, f'OTHER({protocol_num})')
+    
     def get_mac(ip):
         arp_request = ARP(pdst=ip)
         broadcast = Ether(dst="ff:ff:ff:ff:ff:ff")
@@ -25,22 +34,30 @@ class TrafficAnalyzer:
             return None
 
     def analyze_packet(self, packet):
-        if IP in packet and TCP in packet:
+        if IP in packet and (TCP in packet or UDP in packet):
             ip_src = packet[IP].src
             ip_dst = packet[IP].dst
-            port_src = packet[TCP].sport
-            port_dst = packet[TCP].dport
-                    
-            self.src_ports[ip_src].add(port_dst)
 
+            if TCP in packet:
+                port_src = packet[TCP].sport
+                port_dst = packet[TCP].dport     
+                tcp_flags = packet[TCP].flags
+
+            elif UDP in packet:
+                port_src = packet[UDP].sport
+                port_dst = packet[UDP].dport       
+ 
+            self.src_ports[ip_src].add(port_dst)
             flow_key = (ip_src, ip_dst, port_src, port_dst)
 
             # Update flow statistics
             stats = self.flow_stats[flow_key]
+            stats['tcp_flags'] = tcp_flags if TCP in packet else None
+            stats['port_src'] = port_src
+            stats['port_dst'] = port_dst
             stats['packet_count'] += 1
             stats['byte_count'] += len(packet)
             current_time = packet.time
-
             if not stats['start_time']:
                 stats['start_time'] = current_time
 
@@ -80,14 +97,16 @@ class TrafficAnalyzer:
         return {
             'src_ip': packet[IP].src,
             'dst_ip': packet[IP].dst,
-            'src_port': packet[TCP].sport,
-            'dst_port': packet[TCP].dport,
+            'src_port': stats['port_src'] ,
+            'dst_port': stats['port_dst'] ,
+            'protocol': self.get_protocol_name(packet[IP].proto),
             'packet_size': len(packet),
             'flow_duration': flow_duration,
+            'packet_count': stats['packet_count'],
             'packet_rate': stats['packet_count'] / flow_duration,
             'byte_rate': stats['byte_count'] / flow_duration,
-            'tcp_flags': packet[TCP].flags,
-            'window_size': packet[TCP].window,
+            'tcp_flags': stats['tcp_flags'],
+            'window_size': packet[TCP].window if TCP in packet else 0,
             'unique_ports': len(self.src_ports[ip_src]),
             'orginalmac': None,
             'responsemac': None

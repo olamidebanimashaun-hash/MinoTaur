@@ -18,10 +18,10 @@ class AlertSystem:
         alert = {
             'timestamp': datetime.now().isoformat(),
             'threat_type': threat['type'],
+            'confidence': str(threat.get('confidence', 0.0)),
+            'details': threat['rule'] if threat['type'] == 'signature' else 'anomaly',
             'source_ip': packet_info.get('source_ip'),
-            'destination_ip': packet_info.get('destination_ip'),
-            'confidence': threat.get('confidence', 0.0),
-            'details': threat
+            'destination_ip': packet_info.get('destination_ip')
         }
 
         self.logger.warning(json.dumps(alert))
@@ -30,5 +30,3 @@ class AlertSystem:
             self.logger.critical(
                 f"High confidence threat detected: {json.dumps(alert)}"
             )
-            # Implement additional notification methods here
-            # (e.g., email, Slack, SIEM integration)
