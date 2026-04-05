@@ -6,6 +6,8 @@ import numpy as np
 import joblib
 np.set_printoptions(legacy='1.25')
 class DetectionEngine:
+    SUSPICIOUS_KEYWORDS = ["password", "login", "admin", "cmd"]
+
     def __init__(self):
         self.signature_rules = self.load_signature_rules()
 
@@ -61,6 +63,12 @@ class DetectionEngine:
                 ),
                 'severity': 'high',
                 'confidence_base': 0.75
+            },
+            'suspicious_payload': {
+                'description': 'Payload contains suspicious keywords',
+                'condition': lambda f: any(keyword in (f['info']).lower() for keyword in self.SUSPICIOUS_KEYWORDS),
+                'severity': 'medium',
+                'confidence_base': 0.6
             }
         }
 
@@ -90,14 +98,13 @@ class DetectionEngine:
         loaded_model = joblib.load(path)
 
         anomaly_score = loaded_model.predict_proba(feature_vector)[0, 1]  # probability for positive class
-        threshold = 0.1
-        print(anomaly_score)
-        #print(f"Anomaly score: {anomaly_score:.4f}")
+        threshold = 0.2
+        # print(f"Anomaly score: {anomaly_score:.4f}")
         if anomaly_score > threshold:  # Threshold for anomaly detection tweaked for better sensitivity and try different values
             threats.append({
                 'type': 'anomaly',
                 'score': threshold,
-                'confidence': abs(anomaly_score) / 10
+                'confidence': round(abs(anomaly_score) * 100, 2)
             })
 
         return threats

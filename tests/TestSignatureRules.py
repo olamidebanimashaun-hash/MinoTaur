@@ -23,7 +23,8 @@ class TestSignatureRules(unittest.TestCase):
             'src_ip': '10.0.0.1',
             'dst_ip': '192.168.1.2',
             'orginalmac': None,
-            'responsemac': None
+            'responsemac': None,
+            'info': "normal"
         }
         threats = self.detection_engine.detect_threats(features, path="../Data/xgb_model.pkl")
         
@@ -41,7 +42,8 @@ class TestSignatureRules(unittest.TestCase):
             'src_ip': '10.0.0.1',
             'dst_ip': '192.168.1.2',
             'orginalmac': None,
-            'responsemac': None
+            'responsemac': None,
+            'info': "normal"
         }
         threats = self.detection_engine.detect_threats(features, path="../Data/xgb_model.pkl")
         print(threats)
@@ -60,7 +62,8 @@ class TestSignatureRules(unittest.TestCase):
             'src_ip': '192.168.1.100',
             'dst_ip': '192.168.1.2',
             'orginalmac': None,
-            'responsemac': None
+            'responsemac': None,
+            'info': "normal"
         }
         threats = self.detection_engine.detect_threats(features, path="../Data/xgb_model.pkl")
 
@@ -78,13 +81,35 @@ class TestSignatureRules(unittest.TestCase):
             'src_ip': '192.168.1.5',
             'dst_ip': '192.168.1.10',
             'orginalmac': None,
-            'responsemac': None
+            'responsemac': None,
+            'info': "normal"
         }
         
         threats = self.detection_engine.detect_threats(features, path="../Data/xgb_model.pkl")
         
         signature_threats = [t for t in threats if t['type'] == 'signature']
         self.assertEqual(len(signature_threats), 0, "Normal traffic should not trigger signatures")
+
+    def test_suspicious_payload_detection(self):
+            features = {
+                'tcp_flags': 0x10,           # ACK flag (normal)
+                'packet_rate': 2,
+                'unique_ports': 1,
+                'flow_duration': 0.5,
+                'packet_size': 1500,
+                'byte_rate': 3000,
+                'window_size': 65535,
+                'src_ip': '192.168.1.5',
+                'dst_ip': '192.168.1.10',
+                'orginalmac': None,
+                'responsemac': None,
+                'info': "password"
+            }
+            
+            threats = self.detection_engine.detect_threats(features, path="../Data/xgb_model.pkl")
+            
+            signature_threats = [t for t in threats if t['type'] == 'signature']
+            self.assertEqual(len(signature_threats), 1, "Suspicious payload should trigger signature detection")
 
 if __name__ == '__main__':
     unittest.main()

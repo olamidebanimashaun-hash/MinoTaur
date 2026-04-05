@@ -9,7 +9,6 @@ Update Anomaly Detection
     Adjust threshold and tests
 
 Update Signatures
-    slowris
     udp floods
     deep packet inspection
 Update ReadME

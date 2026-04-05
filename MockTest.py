@@ -1,5 +1,5 @@
 import random
-from scapy.all import IP, TCP, ARP, Ether, srp
+from scapy.all import IP, TCP, ARP, UDP, Ether, srp, Raw
 from scapy.sendrecv import send
 from scapy.all import RandShort
 
@@ -39,6 +39,12 @@ def test_ids():
         p = IP(src="10.0.0.1", dst="192.168.1.2") / TCP(sport=5678, dport=j, flags="S")
         vanilla_packets.append(p)
 
+    suspicious_payload_packets = [
+        IP(src="192.168.1.100", dst="192.168.1.2") / TCP(sport=4321, dport=80, flags="S") / Raw(load=b"password=secret"),
+        IP(src="192.168.1.100", dst="192.168.1.2") / TCP(sport=4321, dport=443, flags="S") / Raw(load=b"login=admin"),
+    ]
+
+
     ids = MinoTaur()
     test_packets = normal_packets + syn_packets  + port_scan_packets
 
@@ -48,7 +54,8 @@ def test_ids():
         'fsyn':   fyn_packets  ,
         'pscan': port_scan_packets,
         'all':      test_packets,
-        'vanilla': vanilla_packets
+        'vanilla': vanilla_packets,
+        'susi': suspicious_payload_packets
     }
     print('Enter the type of attack to test (nor,dsyn,pscan,all):')
     for attackType in attackDitctionary.keys():

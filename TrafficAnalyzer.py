@@ -1,6 +1,5 @@
 from scapy import packet
-from scapy.all import sniff, IP, TCP, ARP
-from scapy.all import IP, TCP, ARP, UDP, Ether, srp
+from scapy.all import IP, TCP, ARP, UDP, Ether, srp, Raw
 from collections import defaultdict
 class TrafficAnalyzer:
     def __init__(self):
@@ -45,7 +44,16 @@ class TrafficAnalyzer:
 
             elif UDP in packet:
                 port_src = packet[UDP].sport
-                port_dst = packet[UDP].dport       
+                port_dst = packet[UDP].dport    
+
+            if packet.haslayer(Raw):
+                payload = packet[Raw].load
+                
+                try:
+                    payload_text = payload.decode(errors="ignore")
+                    print("Payload:", payload_text)
+                except:
+                    pass   
  
             self.src_ports[ip_src].add(port_dst)
             flow_key = (ip_src, ip_dst, port_src, port_dst)
@@ -57,6 +65,7 @@ class TrafficAnalyzer:
             stats['port_dst'] = port_dst
             stats['packet_count'] += 1
             stats['byte_count'] += len(packet)
+            stats['info'] = payload_text if packet.haslayer(Raw) else ""
             current_time = packet.time
             if not stats['start_time']:
                 stats['start_time'] = current_time
@@ -108,6 +117,7 @@ class TrafficAnalyzer:
             'tcp_flags': stats['tcp_flags'],
             'window_size': packet[TCP].window if TCP in packet else 0,
             'unique_ports': len(self.src_ports[ip_src]),
+            'info': stats['info'],
             'orginalmac': None,
             'responsemac': None
         }

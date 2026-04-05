@@ -16,14 +16,15 @@ class TestSignatureRules(unittest.TestCase):
             'tcp_flags': 0x02,           # SYN flag
             'packet_rate': 150,          # High rate
             'unique_ports': 2,
-            'flow_duration': 999.0,
-            'packet_size': 999,
+            'flow_duration': 98899.0,
+            'packet_size': 99889,
             'byte_rate': 10000,
             'window_size': 65535,
-            'src_port': 1024,
+            'src_port': 180624,
             'dst_port': 80,
             'orginalmac': None,
-            'responsemac': None
+            'responsemac': None,
+            'info': "normal"
         }
         threats = self.detection_engine.detect_threats(features, path="../Data/xgb_model.pkl")
         
