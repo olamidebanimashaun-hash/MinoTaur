@@ -17,6 +17,46 @@ class TrafficAnalyzer:
         }
         self.src_ports = defaultdict(set)
 
+    def flush_all_flows(self):
+        results = []
+
+        for key, stats in list(self.flow_stats.items()):
+            duration = stats['last_time'] - stats['start_time']
+
+            if duration <= 0:
+                duration = 1  # avoid division by zero
+
+            avg_packet_size = stats['byte_count'] / stats['packet_count']
+
+            avg_window = (
+                sum(stats['window_size']) / len(stats['window_size'])
+                if stats['window_size'] else 0
+            )
+
+            features = {
+                'src_ip': stats['src_ip'],
+                'dst_ip': stats['dst_ip'],
+                'src_port': stats['port_src'],
+                'dst_port': stats['port_dst'],
+                'protocol': stats['protocol'],
+                'packet_size': avg_packet_size,
+                'flow_duration': duration,
+                'packet_count': stats['packet_count'],
+                'packet_rate': stats['packet_count'] / duration,
+                'byte_rate': stats['byte_count'] / duration,
+                'tcp_flags': stats['tcp_flags'],
+                'window_size': avg_window,
+                'unique_ports': len(self.src_ports.get(stats['src_ip'], [])),
+                'info': stats['info'],
+                'orginalmac': None,
+                'responsemac': None
+            }
+
+            results.append(features)
+            del self.flow_stats[key]
+
+        return results
+    
     def get_protocol_name(self, protocol_num: int) -> str:
         """Convert protocol number to name"""
         return self.protocol_map.get(protocol_num, f'OTHER({protocol_num})')
@@ -31,7 +71,17 @@ class TrafficAnalyzer:
             return answered_list[0][1].hwsrc
         else:
             return None
-
+        
+    def get_flow_key(self, packet):
+        if packet.haslayer(IP) and packet.haslayer(TCP):
+            return (
+                packet[IP].src,
+                packet[IP].dst,
+                packet[TCP].sport,
+                packet[TCP].dport
+            )
+        return None
+    
     def analyze_packet(self, packet):
         if IP in packet and (TCP in packet or UDP in packet):
             ip_src = packet[IP].src
@@ -46,12 +96,16 @@ class TrafficAnalyzer:
                 port_src = packet[UDP].sport
                 port_dst = packet[UDP].dport    
 
+            payload_text = ""
             if packet.haslayer(Raw):
                 payload = packet[Raw].load
+                try:
+                    payload_text = payload.decode(errors="ignore")
+                except:
+                    payload_text = ""
                 
                 try:
                     payload_text = payload.decode(errors="ignore")
-                    print("Payload:", payload_text)
                 except:
                     pass   
  
@@ -72,12 +126,30 @@ class TrafficAnalyzer:
 
             stats['last_time'] = current_time
 
+            if stats['packet_count'] == 1:
+                stats['src_ip'] = ip_src
+                stats['dst_ip'] = ip_dst
+                stats['protocol'] = self.get_protocol_name(packet[IP].proto)
+
+
+            if TCP in packet:
+                stats['window_size']  = []
+                stats['window_size'].append(packet[TCP].window)
+
             # print('Last time:', stats['last_time'])
             # print('Start time:', stats['start_time'])
-            return self.extract_features(packet, stats)
+            duration = stats['last_time'] - stats['start_time']
+            if current_time - stats['last_time'] > 30:
+                del self.flow_stats[flow_key]
+
+            if stats['packet_count'] >= 10 or duration > 5:
+                features = self.extract_features(packet, stats)
+                del self.flow_stats[flow_key]  # reset flow
+                return features
+            
+            return None
         elif packet.haslayer(ARP) and packet[ARP].op == 2:
-            return self.extract_for_layer2(packet)
-        
+            return self.extract_for_layer2(packet) 
 
     def extract_for_layer2(self, packet):
         return {
